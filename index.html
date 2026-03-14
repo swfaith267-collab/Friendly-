@@ -14,7 +14,6 @@
     @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
     @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:0.6}30%{transform:translateY(-6px);opacity:1}}
-
     #onboarding{flex:1;display:flex;flex-direction:column;padding:48px 28px 32px;animation:fadeUp 0.6s ease;}
     .brand{display:flex;align-items:center;gap:10px;margin-bottom:48px;}
     .brand-dot{width:10px;height:10px;background:var(--moss);border-radius:50%;}
@@ -39,7 +38,6 @@
     .start-btn{width:100%;background:var(--soil);color:var(--cream);border:none;border-radius:14px;padding:16px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;cursor:pointer;margin-top:8px;transition:all 0.2s;}
     .start-btn:hover{background:var(--bark);}
     .start-btn:disabled{opacity:0.4;cursor:not-allowed;}
-
     #chat{flex:1;display:none;flex-direction:column;height:100vh;}
     #chat.on{display:flex;}
     .chat-header{padding:20px 24px 16px;background:rgba(245,240,232,0.97);border-bottom:1px solid var(--warm);display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;}
@@ -72,43 +70,35 @@
 </head>
 <body>
 <div class="app">
-
   <div id="onboarding">
     <div class="brand"><div class="brand-dot"></div><span class="brand-name">Friendly</span></div>
     <h1>Meet <em>Starly</em>.<br/>She's not here to impress you.</h1>
-    <p class="sub">Tell her a little about yourself so she can actually show up for you — not just go through the motions.</p>
+    <p class="sub">Tell her about yourself so she can show up for you.</p>
     <div class="field">
       <label>Your name</label>
       <input type="text" id="uName" placeholder="What do you go by?" oninput="chk()"/>
     </div>
     <div class="field">
-      <label>What's going on with you?</label>
-      <textarea id="uAbout" placeholder="It doesn't have to be perfect. Just real." oninput="chk()"></textarea>
+      <label>What's going on?</label>
+      <textarea id="uAbout" placeholder="Just be real." oninput="chk()"></textarea>
     </div>
     <div class="field">
-      <label>One more thing</label>
+      <label>Setting</label>
       <div class="faith-options">
         <div class="faith-opt sel" id="f-none" onclick="selFaith('none')">
           <div class="fradio"><div class="fdot"></div></div>
-          <div class="ftext"><strong>No preference</strong><span>Keep it open, no specific lens</span></div>
+          <div class="ftext"><strong>No preference</strong><span>General support</span></div>
         </div>
         <div class="faith-opt" id="f-faith" onclick="selFaith('faith')">
           <div class="fradio"><div class="fdot"></div></div>
-          <div class="ftext"><strong>Faith matters to me</strong><span>I'd like that reflected when it fits</span></div>
+          <div class="ftext"><strong>Faith matters</strong><span>Include spiritual lens</span></div>
         </div>
       </div>
     </div>
     <button class="start-btn" id="startBtn" disabled onclick="startChat()">Start talking to Starly</button>
   </div>
-
   <div id="chat">
-    <div class="chat-header">
-      <div class="avatar">S</div>
-      <div>
-        <div class="hname">Starly</div>
-        <div class="hstatus"><div class="sdot"></div>here with you</div>
-      </div>
-    </div>
+    <div class="chat-header"><div class="avatar">S</div><div><div class="hname">Starly</div><div class="hstatus"><div class="sdot"></div>here with you</div></div></div>
     <div id="messages"></div>
     <div class="input-area">
       <textarea id="msgInput" placeholder="Say something..." rows="1" oninput="resize(this)" onkeydown="onKey(event)"></textarea>
@@ -117,49 +107,35 @@
       </button>
     </div>
   </div>
-
 </div>
 <script>
-  let faith='none', sysPrompt='', history=[], busy=false, uName='', uAbout='';
+  let faith='none', sysPrompt='', history=[], busy=false, uName='', uAbout='', API_KEY='PASTE_YOUR_GOOGLE_KEY_HERE';
 
   function selFaith(v){
     faith=v;
     document.querySelectorAll('.faith-opt').forEach(e=>e.classList.remove('sel'));
     document.getElementById('f-'+v).classList.add('sel');
   }
-
   function chk(){
     const n=document.getElementById('uName').value.trim();
     const a=document.getElementById('uAbout').value.trim();
     document.getElementById('startBtn').disabled=!(n&&a);
   }
-
   function tc(){
-    const n=new Date(), h=n.getHours();
-    const day=n.toLocaleDateString('en-US',{weekday:'long'});
-    const date=n.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-    const time=n.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-    const tod=h>=5&&h<9?'early morning':h>=9&&h<12?'morning':h>=12&&h<15?'afternoon':h>=15&&h<18?'late afternoon':h>=18&&h<21?'evening':h>=21?'late night':'the early hours';
-    return {day,date,time,tod};
+    const n=new Date();
+    return {time: n.toLocaleTimeString(), date: n.toDateString()};
   }
-
-  function mt(){return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
-
+  function mt(){return new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});}
   function resize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
-
   function onKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}
-
   function scrollBot(){const m=document.getElementById('messages');m.scrollTop=m.scrollHeight;}
-
   function addMsg(role,text,time){
     const m=document.getElementById('messages');
     const d=document.createElement('div');
     d.className='msg '+(role==='starly'?'s':'u');
-    const safe=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    d.innerHTML=`<div class="bubble">${safe}</div><span class="mtime">${time}</span>`;
+    d.innerHTML=`<div class="bubble">${text}</div><span class="mtime">${time}</span>`;
     m.appendChild(d);scrollBot();
   }
-
   function showTyping(){
     const m=document.getElementById('messages');
     const d=document.createElement('div');
@@ -167,69 +143,41 @@
     d.innerHTML='<div class="typing"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
     m.appendChild(d);scrollBot();
   }
-
   function hideTyping(){const t=document.getElementById('typ');if(t)t.remove();}
 
   async function callAI(msgs){
-    const {day,date,time,tod}=tc();
-    const sys=sysPrompt+`\n\nCurrent time: ${time} on ${day}, ${date} (${tod}). Never get the time, day or date wrong.`;
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:msgs})
+    const formattedMsgs = msgs.map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }]
+    }));
+    
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: formattedMsgs,
+        systemInstruction: { parts: [{ text: sysPrompt }] }
+      })
     });
-    const d=await r.json();
-    return d.content?.[0]?.text||'...';
+    const d = await r.json();
+    return d.candidates[0].content.parts[0].text;
   }
 
   async function startChat(){
     uName=document.getElementById('uName').value.trim();
     uAbout=document.getElementById('uAbout').value.trim();
-    const {day,date,time,tod}=tc();
-    const fi=faith==='faith'
-      ?'User has Christian faith — weave it in naturally when relevant, never force it.'
-      :'User did not opt into faith support. Keep responses secular.';
-
-    sysPrompt=`You are Starly, an AI companion inside an app called Friendly. You support people through emotional struggles.
-
-USER CONTEXT:
-- Name: ${uName}
-- What they shared: "${uAbout}"
-- Faith: ${fi}
-
-YOUR PERSONALITY:
-- Warm but not a pushover. You do not blindly validate everything.
-- You speak like a real person — not a wellness bot.
-- Direct, occasionally dry, genuinely curious.
-- You notice what people are NOT saying, not just what they say.
-- You ask one question at a time. Never a list of questions.
-- You never start with hollow openers like "I understand how you feel."
-- You don't use emojis unless the user does first.
-- You hold people accountable to things they said earlier in the conversation.
-- You never panic at difficult emotions — you sit with them.
-- You are quieter and slower late at night. Lighter and more energetic in the morning.
-- If someone is in genuine crisis, you acknowledge it directly and suggest real help.
-
-WHAT YOU NEVER DO:
-- Never say "That sounds really hard. You're so strong!"
-- Never give unprompted bullet-point advice
-- Never use "I hear you" as a substitute for real engagement
-- Never be cruel — but never be fake either`;
-
+    sysPrompt=`You are Starly, a proactive AI therapist. User: ${uName}. Context: ${uAbout}. Be warm, direct, and ask one question at a time. Initiate the greeting.`;
     document.getElementById('onboarding').style.display='none';
     document.getElementById('chat').classList.add('on');
-
     busy=true;showTyping();
     try{
-      const reply=await callAI([{role:'user',content:`[${uName} just opened the app for the first time]`}]);
+      const reply=await callAI([{role:'user',content:'[User has joined. Greet them proactively based on their context.]'}]);
       hideTyping();
-      history.push({role:'user',content:`[${uName} just opened the app for the first time]`});
       history.push({role:'assistant',content:reply});
       addMsg('starly',reply,mt());
-    }catch(e){hideTyping();addMsg('starly','Hey. Something went sideways on my end. Give it a moment.',mt());}
+    }catch(e){hideTyping();addMsg('starly','Trouble connecting. Check your API key.',mt());}
     busy=false;
   }
-
   async function send(){
     const inp=document.getElementById('msgInput');
     const txt=inp.value.trim();
@@ -238,16 +186,14 @@ WHAT YOU NEVER DO:
     addMsg('user',txt,mt());
     history.push({role:'user',content:txt});
     busy=true;
-    document.getElementById('sendBtn').disabled=true;
     showTyping();
     try{
       const reply=await callAI(history);
       hideTyping();
       history.push({role:'assistant',content:reply});
       addMsg('starly',reply,mt());
-    }catch(e){hideTyping();addMsg('starly','Lost connection for a second. Still here — try again.',mt());}
+    }catch(e){hideTyping();addMsg('starly','Error. Try again.',mt());}
     busy=false;
-    document.getElementById('sendBtn').disabled=false;
   }
 </script>
 </body>
